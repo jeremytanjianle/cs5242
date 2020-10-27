@@ -5,7 +5,9 @@ Jeremy Tan - e0573157@u.nus.edu
 
 
 #### Installation and Usage
-`pip install -r requirements.txt`
+1. Install dependencies  
+`pip install -r requirements.txt`    
+2. Train script  
 `python train.py`
 
 #### Data
