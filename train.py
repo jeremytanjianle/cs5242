@@ -6,11 +6,48 @@ from torchvision import datasets, models, transforms
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
+from PIL import Image
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 from src.dataset import cs5242_dataset
 
+"""
+1. Augment data with LEFT RIGHT FLIP
+"""
+TRAIN_IMG_DIR = 'data/nus-cs5242/train_image/train_image'
+TRAIN_LABELS_DIR = 'data/nus-cs5242/train_label.csv'
+
+img_name_list = os.listdir(TRAIN_IMG_DIR)
+img_labels = pd.read_csv(TRAIN_LABELS_DIR, index_col=0)
+img_labels_index = img_labels.index
+
+# IF-block checks that data is not augmented
+if len(img_labels_index) < 2000:
+    for img_index in img_labels_index:
+        
+        # open image
+        img_name = str(img_index) + '.png'
+        orig_img = Image.open(TRAIN_IMG_DIR + '/' + img_name)
+        
+        # flip image
+        flipped_img = orig_img.transpose(Image.FLIP_LEFT_RIGHT)
+        
+        # save flipped image in train folder
+        flipped_idx = img_index + len(img_labels_index)
+        flipped_img.save( TRAIN_IMG_DIR + '/' + str(flipped_idx) + '.png' )
+        
+        # save label in labels df
+        img_labels.loc[flipped_idx,'Label'] = int(img_labels.loc[img_index,'Label'])
+
+    # save flipped labels
+    img_labels.Label = img_labels.Label.apply(int)
+    img_labels.to_csv(TRAIN_LABELS_DIR)
+
+"""
+2. TRAIN MODEL
+"""
 image_transforms = {
     'train': transforms.Compose([
         transforms.Resize(size=256),
@@ -140,19 +177,20 @@ num_epochs = 100
 trained_model, history = train_and_valid(resnet50, loss_func, optimizer, num_epochs)
 torch.save(history, 'models/'+dataset+'_history.pt')
 
-history = np.array(history)
-plt.plot(history[:, 0:2])
-plt.legend(['Tr Loss', 'Val Loss'])
-plt.xlabel('Epoch Number')
-plt.ylabel('Loss')
-plt.ylim(0, 1)
-plt.savefig(dataset+'_loss_curve.png')
-plt.show()
+# history = np.array(history)
+# plt.plot(history[:, 0:2])
+# plt.legend(['Tr Loss', 'Val Loss'])
+# plt.xlabel('Epoch Number')
+# plt.ylabel('Loss')
+# plt.ylim(0, 1)
+# plt.savefig(dataset+'_loss_curve.png')
+# plt.show()
 
-plt.plot(history[:, 2:4])
-plt.legend(['Tr Accuracy', 'Val Accuracy'])
-plt.xlabel('Epoch Number')
-plt.ylabel('Accuracy')
-plt.ylim(0, 1)
-plt.savefig(dataset+'_accuracy_curve.png')
-plt.show()
+# plt.plot(history[:, 2:4])
+# plt.legend(['Tr Accuracy', 'Val Accuracy'])
+# plt.xlabel('Epoch Number')
+# plt.ylabel('Accuracy')
+# plt.ylim(0, 1)
+# plt.savefig(dataset+'_accuracy_curve.png')
+# plt.show()
+
