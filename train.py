@@ -29,8 +29,10 @@ parser.add_argument("-e", "--epochs", default=100, type=int, help="number of epo
 parser.add_argument("-s", "--seed", default=0, type=int, help="random seed for pytoch and numpy")
 args = parser.parse_args()
 
-torch.manual_seed(0)
-np.random.seed(0)
+torch.manual_seed(args.seed)
+np.random.seed(args.seed)
+
+
 
 """
 1. Augment data with LEFT RIGHT FLIP
@@ -44,6 +46,7 @@ img_labels_index = img_labels.index
 
 # IF-block checks that data is not augmented
 if len(img_labels_index) < 2000:
+    print("Augmenting data")
     for img_index in img_labels_index:
         
         # open image
@@ -63,6 +66,9 @@ if len(img_labels_index) < 2000:
     # save flipped labels
     img_labels.Label = img_labels.Label.apply(int)
     img_labels.to_csv(TRAIN_LABELS_DIR)
+    print(f"number of training data: {len(img_labels)}")
+
+
 
 """
 2. TRAIN MODEL
@@ -212,6 +218,8 @@ trained_model, history = train_and_valid(resnet50, loss_func, optimizer, args.ep
 # plt.ylim(0, 1)
 # plt.savefig(dataset+'_accuracy_curve.png')
 # plt.show()
+
+
 
 """
 3. Make Prediction
