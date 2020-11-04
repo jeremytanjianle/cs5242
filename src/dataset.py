@@ -34,7 +34,10 @@ class cs5242_dataset(Dataset):
         """
         # init labels and split
         self.df = pd.read_csv(txt_path, index_col=0)
-        self.df = self.df.iloc[:int(split*len(self.df))] if train else self.df.iloc[int(split*len(self.df)):] 
+        # The augmented data is flushed the back
+        # so we put the split in the front 
+        # to keep the augmented data in the training set
+        self.df = self.df.iloc[-int(split*len(self.df)):] if train else self.df.iloc[:-int(split*len(self.df))] 
         
         # dir values for images
         self.img_names = self.df.index.values

@@ -25,7 +25,7 @@ The expected filepath is:
 This will augment the data, train the model, and output predictions in `/predictions` folder.  
 `python train.py`  
 On the terminal, the expected output should look like this:  
-<img src="misc/expected_output.PNG">  
+<img src="src/expected_output.PNG">  
 Of course, running the full 100 epochs will give a better result.
 
 #### Expected Output of predictions

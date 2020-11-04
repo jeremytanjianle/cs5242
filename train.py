@@ -42,12 +42,14 @@ TRAIN_LABELS_DIR = 'data/nus-cs5242/train_label.csv'
 
 img_name_list = os.listdir(TRAIN_IMG_DIR)
 img_labels = pd.read_csv(TRAIN_LABELS_DIR, index_col=0)
-img_labels_index = img_labels.index
+im_to_flip = img_labels.loc[img_labels.Label !=1, :].index
+print(f"number of img to train on: {len(img_labels)}")
 
 # IF-block checks that data is not augmented
-if len(img_labels_index) < 2000:
+if len(img_labels) <= 1164:
     print("Augmenting data")
-    for img_index in img_labels_index:
+    len_flipped_img = 1
+    for img_index in im_to_flip:
         
         # open image
         img_name = str(img_index) + '.png'
@@ -57,16 +59,18 @@ if len(img_labels_index) < 2000:
         flipped_img = orig_img.transpose(Image.FLIP_LEFT_RIGHT)
         
         # save flipped image in train folder
-        flipped_idx = img_index + len(img_labels_index)
+        flipped_idx = len(img_labels) + len_flipped_img
         flipped_img.save( TRAIN_IMG_DIR + '/' + str(flipped_idx) + '.png' )
         
         # save label in labels df
         img_labels.loc[flipped_idx,'Label'] = int(img_labels.loc[img_index,'Label'])
 
+        len_flipped_img+=1
+
     # save flipped labels
     img_labels.Label = img_labels.Label.apply(int)
     img_labels.to_csv(TRAIN_LABELS_DIR)
-    print(f"number of training data: {len(img_labels)}")
+    print(f"number of img to train on after augmentation: {len(img_labels)}")
 
 
 
