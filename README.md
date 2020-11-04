@@ -5,8 +5,8 @@ Jeremy Tan - e0573157@u.nus.edu
 
 
 #### Installation and Usage
-1. Install dependencies. Note the `find-links` for pytorch, added for your convenience.  
-`pip install -r requirements.txt -f https://download.pytorch.org/whl/torch_stable.html`    
+1. Install dependencies. 
+`pip install -r requirements.txt`    
 
 2. Save data file in  `/data` folder and extract there.   
 The expected filepath is:
