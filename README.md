@@ -31,3 +31,6 @@ Of course, running the full 100 epochs will give a better result.
 #### Expected Output of predictions
 The predictions will be saved in the `predictions\<timestamp>` folder in csv.  
 The model will likewise be saved in the `models\<timestamp>` folder.
+
+#### Repo Structure
+<img src="src/architecture_chart.PNG">  
