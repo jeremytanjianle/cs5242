@@ -1,3 +1,12 @@
+"""
+This script will do 3 things:
+    1. Augment train images
+    2. Train model and save model based on validation
+    3. Inference: will output a predictions in predictions folder
+
+Sample usage:
+    python train.py -e 100 -s 0
+"""
 import os
 import time
 
@@ -10,8 +19,18 @@ from PIL import Image
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import csv
+import argparse
 
 from src.dataset import cs5242_dataset
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-e", "--epochs", default=100, type=int, help="number of epochs to train")
+parser.add_argument("-s", "--seed", default=0, type=int, help="random seed for pytoch and numpy")
+args = parser.parse_args()
+
+torch.manual_seed(0)
+np.random.seed(0)
 
 """
 1. Augment data with LEFT RIGHT FLIP
@@ -83,7 +102,7 @@ data = {
 train_data_size, valid_data_size= len(data['train']), len(data['valid'])
 train_data = DataLoader(data['train'], batch_size=batch_size, shuffle=True)
 valid_data = DataLoader(data['valid'], batch_size=batch_size, shuffle=True)
-print(train_data_size, valid_data_size)
+print(f"train_data_size, valid_data_size: {train_data_size, valid_data_size}")
 
 
 # model
@@ -171,11 +190,11 @@ def train_and_valid(model, loss_function, optimizer, epochs=25):
             epoch+1, avg_valid_loss, avg_train_acc*100, avg_valid_loss, avg_valid_acc*100, epoch_end-epoch_start
         ))
         print("Best Accuracy for validation : {:.4f} at epoch {:03d}".format(best_acc, best_epoch))
+
+    torch.save(history, 'models/'+timestamp +'/'+'_history.pt')
     return model, history
 
-num_epochs = 100
-trained_model, history = train_and_valid(resnet50, loss_func, optimizer, num_epochs)
-torch.save(history, 'models/'+dataset+'_history.pt')
+trained_model, history = train_and_valid(resnet50, loss_func, optimizer, args.epochs)
 
 # history = np.array(history)
 # plt.plot(history[:, 0:2])
@@ -194,3 +213,48 @@ torch.save(history, 'models/'+dataset+'_history.pt')
 # plt.savefig(dataset+'_accuracy_curve.png')
 # plt.show()
 
+"""
+3. Make Prediction
+"""
+device = torch.device('cpu')
+transform=transforms.Compose([
+            transforms.Resize(256),
+            # transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485,0.456,0.406],
+                                 std=[0.229,0.224,0.225])
+                            ])
+
+# dataset = 'data/nus-cs5242/'
+# test_directory = os.path.join(dataset, 'test_image/test_image')
+test_directory = 'data/nus-cs5242/test_image'
+data = {
+    'test': datasets.ImageFolder(root=test_directory, transform=transform),
+}
+
+# batch_size = 32
+test_data_size = len(data['test'])
+test_data = DataLoader(data['test'], shuffle=False)  # , batch_size=batch_size
+print(f"test_data_size: {test_data_size}")
+
+trained_model = trained_model.to(device)
+torch.no_grad()
+trained_model.eval()
+csv_data = [("ID","Label")]
+
+print("running predictions")
+for j, (inputs, labels) in enumerate(test_data):
+    inputs = inputs.to(device)
+    output = trained_model(inputs)
+    _, predicted = torch.max(output, 1)
+    csv_data.append((str(j),str(int(predicted))))
+
+timestamp = time.strftime('%Y%m%d_%H%M%S', time.localtime())
+predictions_filename = f'predictions/{timestamp}.csv'
+f = open(predictions_filename,'w',newline='')
+writer = csv.writer(f)
+for i in csv_data:
+    writer.writerow(i)
+f.close()
+
+print(f"DONE: Predictions saved in {predictions_filename}")
