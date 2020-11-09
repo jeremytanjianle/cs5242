@@ -101,7 +101,7 @@ label_directory = os.path.join(dataset, 'train_label.csv')
 train_directory = os.path.join(dataset, 'train_image/train_image')
 # valid_directory = os.path.join(dataset, 'test_image/train_image')
 
-batch_size, num_classes, split = 32, 3, 0.8
+batch_size, num_classes, split = 32, 3, 0.9
 data = {
     'train': cs5242_dataset(img_dir=train_directory, txt_path = label_directory, transform = image_transforms['train'], train=True, split=split),
     'valid': cs5242_dataset(img_dir=train_directory, txt_path = label_directory, transform = image_transforms['train'], train=False, split=split),
